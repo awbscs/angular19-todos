@@ -50,6 +50,9 @@ import { selectSelectedTodo, selectTodoLoading, selectTodoError } from '../../st
               <mat-error *ngIf="todoForm.get('todo')?.hasError('required')">
                 Todo description is required
               </mat-error>
+              <mat-error *ngIf="todoForm.get('todo')?.hasError('pattern')">
+                Description cannot be only whitespace
+              </mat-error>
             </mat-form-field>
 
             <mat-checkbox formControlName="completed" class="full-width">
@@ -126,7 +129,7 @@ export class TodoFormComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {
     this.todoForm = this.fb.group({
-      todo: ['', Validators.required],
+      todo: ['', [Validators.required, Validators.pattern(/\S+/)]],
       completed: [false]
     });
     this.loading$ = this.store.select(selectTodoLoading);
@@ -157,10 +160,12 @@ export class TodoFormComponent implements OnInit {
       }
     });
   }
-
   onSubmit(): void {
     if (this.todoForm.valid) {
-      const formValue = this.todoForm.value;
+      const formValue = {
+        ...this.todoForm.value,
+        todo: this.todoForm.value.todo.trim()
+      };
       if (this.isEditMode) {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
@@ -182,7 +187,6 @@ export class TodoFormComponent implements OnInit {
       }
     }
   }
-
   onCancel(): void {
     this.router.navigate(['/todos']);
   }
