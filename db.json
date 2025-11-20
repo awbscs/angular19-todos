@@ -27,13 +27,13 @@
     {
       "id": 3,
       "todo": "Write unit tests for the application",
-      "completed": false,
+      "completed": true,
       "userId": 1
     },
     {
       "id": 4,
       "todo": "Review the code and documentation",
-      "completed": false,
+      "completed": true,
       "userId": 1
     },
     {
@@ -47,12 +47,6 @@
       "completed": true,
       "userId": 1,
       "id": 6
-    },
-    {
-      "todo": "  ",
-      "completed": false,
-      "userId": 1,
-      "id": 7
     }
   ]
 }

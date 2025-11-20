@@ -52,9 +52,10 @@ import { listAnimation, fadeIn } from '../../../animations';
         <div class="todo-column">
           <h2>Todo ({{ (incompleteTodos$ | async)?.length || 0 }})</h2>
           <div
-            cdkDropList
+             cdkDropList
             id="todoList"
             [cdkDropListData]="(incompleteTodos$ | async) || []"
+            [cdkDropListConnectedTo]="['completedList']"
             class="todo-list"
             (cdkDropListDropped)="onDrop($event, false)">
             <div
@@ -87,6 +88,7 @@ import { listAnimation, fadeIn } from '../../../animations';
             cdkDropList
             id="completedList"
             [cdkDropListData]="(completedTodos$ | async) || []"
+            [cdkDropListConnectedTo]="['todoList']"
             class="todo-list completed"
             (cdkDropListDropped)="onDrop($event, true)">
             <div
@@ -244,18 +246,22 @@ export class TodoListComponent implements OnInit {
 
   onDrop(event: CdkDragDrop<Todo[]>, targetCompleted: boolean): void {
     if (event.previousContainer === event.container) {
+      // Reordering within the same container
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
+      // Moving between containers
       const todo = event.previousContainer.data[event.previousIndex];
-      if (todo.completed !== targetCompleted) {
+      if (todo && todo.completed !== targetCompleted) {
+        // Perform visual transfer for immediate feedback
+        transferArrayItem(
+          event.previousContainer.data,
+          event.container.data,
+          event.previousIndex,
+          event.currentIndex
+        );
+        // Dispatch action to persist the change via API
         this.store.dispatch(updateTodoStatus({ id: todo.id, completed: targetCompleted }));
       }
-      transferArrayItem(
-        event.previousContainer.data,
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
     }
   }
 
