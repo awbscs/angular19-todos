@@ -1,0 +1,58 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "password": "password123"
+    },
+    {
+      "id": 2,
+      "username": "jane_smith",
+      "email": "jane@example.com",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "password": "password123"
+    }
+  ],
+  "todos": [
+    {
+      "id": 1,
+      "todo": "Do something nice for someone I care about",
+      "completed": false,
+      "userId": 1
+    },
+    {
+      "id": 3,
+      "todo": "Write unit tests for the application",
+      "completed": false,
+      "userId": 1
+    },
+    {
+      "id": 4,
+      "todo": "Review the code and documentation",
+      "completed": false,
+      "userId": 1
+    },
+    {
+      "id": 5,
+      "todo": "Learn Angular 19 new features",
+      "completed": true,
+      "userId": 2
+    },
+    {
+      "todo": "4th todo",
+      "completed": true,
+      "userId": 1,
+      "id": 6
+    },
+    {
+      "todo": "  ",
+      "completed": false,
+      "userId": 1,
+      "id": 7
+    }
+  ]
+}
