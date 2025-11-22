@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { DragDropModule, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { AppState } from '../../../core/store/app.state';
 import { loadTodos, updateTodoStatus, deleteTodo } from '../../store/todo.actions';
 import { selectIncompleteTodos, selectCompletedTodos, selectTodoLoading, selectTodoError } from '../../store/todo.selectors';
@@ -27,7 +29,8 @@ import { listAnimation, fadeIn } from '../../../animations';
     MatIconModule,
     MatProgressSpinnerModule,
     MatChipsModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatPaginatorModule
   ],
   animations: [fadeIn, listAnimation],
   template: `
@@ -59,7 +62,7 @@ import { listAnimation, fadeIn } from '../../../animations';
             class="todo-list"
             (cdkDropListDropped)="onDrop($event, false)">
             <div
-              *ngFor="let todo of (incompleteTodos$ | async) || []"
+              *ngFor="let todo of (paginatedIncompleteTodos$ | async) || []"
               cdkDrag
               class="todo-item"
               [@fadeIn]
@@ -80,6 +83,15 @@ import { listAnimation, fadeIn } from '../../../animations';
               No todos yet. Create one!
             </div>
           </div>
+          <mat-paginator
+            *ngIf="(incompleteTodos$ | async)?.length > 0"
+            [length]="(incompleteTodos$ | async)?.length || 0"
+            [pageSize]="incompletePageSize"
+            [pageIndex]="incompletePageIndex"
+            [pageSizeOptions]="[5, 10, 20]"
+            (page)="onIncompletePageChange($event)"
+            class="todo-paginator">
+          </mat-paginator>
         </div>
 
         <div class="todo-column">
@@ -92,7 +104,7 @@ import { listAnimation, fadeIn } from '../../../animations';
             class="todo-list completed"
             (cdkDropListDropped)="onDrop($event, true)">
             <div
-              *ngFor="let todo of (completedTodos$ | async) || []"
+              *ngFor="let todo of (paginatedCompletedTodos$ | async) || []"
               cdkDrag
               class="todo-item completed"
               [@fadeIn]
@@ -113,6 +125,15 @@ import { listAnimation, fadeIn } from '../../../animations';
               No completed todos yet.
             </div>
           </div>
+          <mat-paginator
+            *ngIf="(completedTodos$ | async)?.length > 0"
+            [length]="(completedTodos$ | async)?.length || 0"
+            [pageSize]="completedPageSize"
+            [pageIndex]="completedPageIndex"
+            [pageSizeOptions]="[5, 10, 20]"
+            (page)="onCompletedPageChange($event)"
+            class="todo-paginator">
+          </mat-paginator>
         </div>
       </div>
     </div>
@@ -202,6 +223,9 @@ import { listAnimation, fadeIn } from '../../../animations';
       border-radius: 4px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
+    .todo-paginator {
+      margin-top: 16px;
+    }
     @media (max-width: 768px) {
       .todo-boards {
         grid-template-columns: 1fr;
@@ -217,8 +241,20 @@ import { listAnimation, fadeIn } from '../../../animations';
 export class TodoListComponent implements OnInit {
   incompleteTodos$: Observable<Todo[]>;
   completedTodos$: Observable<Todo[]>;
+  paginatedIncompleteTodos$: Observable<Todo[]>;
+  paginatedCompletedTodos$: Observable<Todo[]>;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
+
+  incompletePageSize = 5;
+  completedPageSize = 5;
+  incompletePageIndex = 0;
+  completedPageIndex = 0;
+
+  private incompletePageIndex$ = new BehaviorSubject<number>(0);
+  private completedPageIndex$ = new BehaviorSubject<number>(0);
+  private incompletePageSize$ = new BehaviorSubject<number>(5);
+  private completedPageSize$ = new BehaviorSubject<number>(5);
 
   constructor(
     private store: Store<AppState>,
@@ -229,6 +265,51 @@ export class TodoListComponent implements OnInit {
     this.completedTodos$ = this.store.select(selectCompletedTodos);
     this.loading$ = this.store.select(selectTodoLoading);
     this.error$ = this.store.select(selectTodoError);
+
+    // Create paginated observables that react to page changes
+    this.paginatedIncompleteTodos$ = combineLatest([
+      this.incompleteTodos$,
+      this.incompletePageIndex$,
+      this.incompletePageSize$
+    ]).pipe(
+      map(([todos, pageIndex, pageSize]) => {
+        // Adjust page index if it's out of bounds
+        const maxPageIndex = Math.max(0, Math.ceil(todos.length / pageSize) - 1);
+        const adjustedPageIndex = Math.min(pageIndex, maxPageIndex);
+        // Update page index if needed (using setTimeout to avoid infinite loop)
+        if (adjustedPageIndex !== pageIndex && pageSize > 0 && todos.length > 0) {
+          setTimeout(() => {
+            this.incompletePageIndex$.next(adjustedPageIndex);
+            this.incompletePageIndex = adjustedPageIndex;
+          }, 0);
+        }
+        const startIndex = adjustedPageIndex * pageSize;
+        const endIndex = startIndex + pageSize;
+        return todos.slice(startIndex, endIndex);
+      })
+    );
+
+    this.paginatedCompletedTodos$ = combineLatest([
+      this.completedTodos$,
+      this.completedPageIndex$,
+      this.completedPageSize$
+    ]).pipe(
+      map(([todos, pageIndex, pageSize]) => {
+        // Adjust page index if it's out of bounds
+        const maxPageIndex = Math.max(0, Math.ceil(todos.length / pageSize) - 1);
+        const adjustedPageIndex = Math.min(pageIndex, maxPageIndex);
+        // Update page index if needed (using setTimeout to avoid infinite loop)
+        if (adjustedPageIndex !== pageIndex && pageSize > 0 && todos.length > 0) {
+          setTimeout(() => {
+            this.completedPageIndex$.next(adjustedPageIndex);
+            this.completedPageIndex = adjustedPageIndex;
+          }, 0);
+        }
+        const startIndex = adjustedPageIndex * pageSize;
+        const endIndex = startIndex + pageSize;
+        return todos.slice(startIndex, endIndex);
+      })
+    );
   }
 
   ngOnInit(): void {
@@ -281,6 +362,20 @@ export class TodoListComponent implements OnInit {
     if (confirm('Are you sure you want to delete this todo?')) {
       this.store.dispatch(deleteTodo({ id }));
     }
+  }
+
+  onIncompletePageChange(event: PageEvent): void {
+    this.incompletePageIndex = event.pageIndex;
+    this.incompletePageSize = event.pageSize;
+    this.incompletePageIndex$.next(event.pageIndex);
+    this.incompletePageSize$.next(event.pageSize);
+  }
+
+  onCompletedPageChange(event: PageEvent): void {
+    this.completedPageIndex = event.pageIndex;
+    this.completedPageSize = event.pageSize;
+    this.completedPageIndex$.next(event.pageIndex);
+    this.completedPageSize$.next(event.pageSize);
   }
 }
 
