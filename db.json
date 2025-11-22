@@ -50,25 +50,25 @@
     },
     {
       "todo": "1",
-      "completed": false,
+      "completed": true,
       "userId": 2,
       "id": 7
     },
     {
       "todo": "2",
-      "completed": false,
+      "completed": true,
       "userId": 2,
       "id": 8
     },
     {
       "todo": "3",
-      "completed": false,
+      "completed": true,
       "userId": 2,
       "id": 9
     },
     {
       "todo": "4",
-      "completed": false,
+      "completed": true,
       "userId": 2,
       "id": 10
     },
@@ -98,7 +98,7 @@
     },
     {
       "todo": "9",
-      "completed": false,
+      "completed": true,
       "userId": 2,
       "id": 15
     },

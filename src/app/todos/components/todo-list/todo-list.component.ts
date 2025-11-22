@@ -84,7 +84,7 @@ import { listAnimation, fadeIn } from '../../../animations';
             </div>
           </div>
           <mat-paginator
-            *ngIf="(incompleteTodos$ | async)?.length > 0"
+            *ngIf="((incompleteTodos$ | async)?.length ?? 0) > 0"
             [length]="(incompleteTodos$ | async)?.length || 0"
             [pageSize]="incompletePageSize"
             [pageIndex]="incompletePageIndex"
@@ -126,7 +126,7 @@ import { listAnimation, fadeIn } from '../../../animations';
             </div>
           </div>
           <mat-paginator
-            *ngIf="(completedTodos$ | async)?.length > 0"
+            *ngIf="((completedTodos$ | async)?.length ?? 0) > 0"
             [length]="(completedTodos$ | async)?.length || 0"
             [pageSize]="completedPageSize"
             [pageIndex]="completedPageIndex"
