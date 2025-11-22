@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { of } from 'rxjs';
 import { map, catchError, switchMap, tap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
@@ -22,7 +23,23 @@ export class AuthEffects {
             localStorage.setItem('user', JSON.stringify(response.user));
             return loginSuccess({ response });
           }),
-          catchError(error => of(loginFailure({ error: error.message || 'Login failed' })))
+          catchError((error: HttpErrorResponse) => {
+            // Extract error message from API response
+            let errorMessage = 'Login failed';
+            if (error.error) {
+              // Handle different error response formats
+              if (typeof error.error === 'string') {
+                errorMessage = error.error;
+              } else if (error.error.message) {
+                errorMessage = error.error.message;
+              } else if (error.error.error) {
+                errorMessage = error.error.error;
+              }
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+            return of(loginFailure({ error: errorMessage }));
+          })
         )
       )
     )

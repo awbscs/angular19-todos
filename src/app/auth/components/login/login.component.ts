@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
 import { login } from '../../store/auth.actions';
 import { selectAuthLoading, selectAuthError } from '../../store/auth.selectors';
 import { AppState } from '../../../core/store/app.state';
@@ -25,7 +26,8 @@ import { AppState } from '../../../core/store/app.state';
     MatInputModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatIconModule
   ],
   template: `
     <div class="login-container">
@@ -52,7 +54,8 @@ import { AppState } from '../../../core/store/app.state';
             </mat-form-field>
 
             <div class="error-message" *ngIf="error$ | async as error">
-              {{ error }}
+              <mat-icon class="error-icon">error</mat-icon>
+              <span>{{ error }}</span>
             </div>
 
             <button
@@ -94,6 +97,23 @@ import { AppState } from '../../../core/store/app.state';
     }
     mat-card-content {
       padding-top: 20px;
+    }
+    .error-message {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f44336;
+      background-color: #ffebee;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      border-left: 4px solid #f44336;
+    }
+    .error-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
   `]
 })

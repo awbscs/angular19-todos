@@ -51,7 +51,7 @@ The application uses json-server to mock the backend API. The API runs on `http:
 ### Test Credentials
 
 - Username: `john_doe`, Password: `password123`
-- Username: `jane_smith`, Password: `password123`
+- Username: `abdul`, Password: `password123`
 
 ### API Endpoints
 
